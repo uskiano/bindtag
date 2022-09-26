@@ -1,0 +1,120 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Bindtag test</title>
+    <style>
+        .disabled{
+            color:grey;
+        }
+    </style>
+</head>
+<body>
+    <h1>BindTag (one way)</h1>
+    <p>Link an object model to html elements using javascript Proxy</p>
+    <p>Pressing the button below will execute this code</p>
+    <code style="background:black;color:yellow">
+        model.name = 'daniel';<br />
+        model.isActiveClass = 'disabled';<br />
+        model.address.lineOne = '179 alfred';<br />
+        model.tasks[0].name = 'buy fruits';<br />
+        model.tasks[1].details.desc = 'call Gustavo to help me to fix the blender!';
+    </code>
+    <p>After the code execution the html should change</p>
+    <p>Notice that the name has changed style as well..</p>
+    <button onclick="changeModel()">change model</button>
+    <br />
+    <br />
+    <script src="observable.js"></script>
+    <script src="bind-tag-list.js"></script>
+    <script src="bind-tag-proxy.js"></script>
+    <script src="bind-tag.js"></script>
+    <script>
+
+        function toHtml(value) {
+            var div = document.createElement('div');
+            div.innerHTML = value.replace(/(\r\n|\n|\r)/gm, "").trim();
+            return div.firstElementChild;
+        }
+
+        let model = {
+            isActiveClass: 'active',
+            styleClass: 'button-style1',
+            name: 'juan',
+            id: '035',
+            songs: ['abandoned tales', 'dark moon'],
+            address: {
+                lineOne: '1 harrys rd'
+            },
+            tasks: [
+                {
+                    id: 001,
+                    name: 'buy milk',
+                    isActive: true,
+                    details: {
+                        desc: 'go to the store and buy some milk'
+                    },
+                    action: (e) => { alert('task 1 action') }
+                },
+                {
+                    id: 002,
+                    name: 'fix blender',
+                    isActive: false,
+                    details: {
+                        desc: 'call Matias to fix the blender'
+                    },
+                    action: (e) => { alert('task 2 action') }
+                }
+            ]
+        };
+
+        function createPerson(model) {
+            return `
+                    <div>
+                        <div class='${model.isActiveClass}' bind-class='isActiveClass' bind-text='name'>${model.name}</div>
+                        <div>
+                            <input value='${model.address.lineOne}' bind-text='address.lineOne'>
+                        </div>
+                        <ul>
+                            ${model.tasks.map((task, index) => createTask(task, index))}
+                        </ul>
+                    </div>`;
+        }
+
+        function createTask(task, index) {
+            let a = `tasks.${index}`;
+            return `
+                    <li bind-click='${a}.action'>
+                        <h1>${task.id}</h1>
+                        <h2 bind-text='${a}.name'>${task.name}</h2>
+                        <label bind-text='${a}.details.desc'>${task.details.desc}</label>
+                    </li>
+                `;
+        }
+
+        function createSongItem(songName) {
+            return `<li>${songName}</li>`;
+        }
+
+        let theFunc = createPerson;
+        let person = createPerson(model);
+        let personHtml = toHtml(person);
+
+
+        window.onload = () => {
+
+            let bind = new ulib.bindtag.BindTag(personHtml, model);
+            model = bind.getModel();
+            document.querySelector('body').appendChild(personHtml);
+        }
+
+        function changeModel() {
+            model.name = 'daniel';
+            model.isActiveClass = 'disabled';
+            model.address.lineOne = '179 alfred';
+            model.tasks[0].name = 'buy fruits';
+            model.tasks[1].details.desc = 'call Gustavo to help me to fix the blender!';
+        }
+
+    </script>
+
+</body>
+</html>
